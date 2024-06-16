@@ -1,1 +1,1 @@
-In this repository i write a cod, that take a photo add text, and then paired with a last picture it will create a gif, and a blinking effect will appear. in this code you can select the speed at which the text will blink
+In this repository i write a code, that take a photo add text, and then paired with a last picture it will create a gif, and a blinking effect will appear. in this code you can select the speed at which the text will blink
