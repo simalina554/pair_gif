@@ -2,63 +2,77 @@ import random
 import cv2
 from PIL import Image
 import os
-import imageio
 
-frame_duration = 10
-image_size = (640, 480)
-font = cv2.FONT_ITALIC
-bottom_margin = 20
-text_color = (32, 178, 170)
-border_thickness = 2
-image_dir = "image"
+font = cv2.FONT_HERSHEY_SIMPLEX
+text_color = (220, 20, 60)
+border_thickness = 3
+image_dir = "3"
+image_size = (646, 961)
 
 file_count = 0
 for filename in os.listdir(image_dir):
     if os.path.isfile(os.path.join(image_dir, filename)):
         file_count += 1
 
-if os.path.exists('result'):
-    print('ok')
-else:
-    os.mkdir('result')
+result_dir = 'result'
+if not os.path.exists(result_dir):
+    os.mkdir(result_dir)
+
 
 def rename_file(original_filename, new_filename):
-    # Check if the file exists
     if os.path.exists(f"{image_dir}/{original_filename}"):
-        # Rename the file
         os.rename(f"{image_dir}/{original_filename}", f"{image_dir}/{new_filename}")
         print(f"Image renamed: {original_filename} -> {new_filename}")
     else:
         print(f"Error: File not found: {original_filename}")
 
 
-list12 = os.listdir(image_dir)
+def draw_text_on_image(image, text, font, text_color, border_thickness):
+    img_h, img_w = image.shape[:2]
+    text_size, _ = cv2.getTextSize(text, font, 1, border_thickness)
+    text_w, text_h = text_size
 
-for i in list12:
-    def random_word():
-        with open("question.txt", 'r', encoding="utf-8") as file:
-            lines = file.readlines()
-        random_lines = random.sample(lines, 1)
-        result_string = '|'.join(map(lambda x: x.strip(), random_lines))
+    font_scale = 1
+    while text_w < img_w and text_h < img_h:
+        font_scale += 0.1
+        text_size, _ = cv2.getTextSize(text, font, font_scale, border_thickness)
+        text_w, text_h = text_size
 
-        return result_string
+    while text_w > img_w or text_h > img_h:
+        font_scale -= 0.1
+        text_size, _ = cv2.getTextSize(text, font, font_scale, border_thickness)
+        text_w, text_h = text_size
 
-
-    result1 = random_word()
-    img = cv2.imread(f"{image_dir}/{i}")
-    img_h, img_w = img.shape[:2]
-    text_size = cv2.getTextSize(result1, font, 1, border_thickness)[0]
-    text_baseline = img_h // 2
-    text_start_x = (img_w - text_size[0]) // 2
+    text_baseline = img_h // 2 + text_h // 2
+    text_start_x = img_w // 2 - text_w // 2
     text_pos = (text_start_x, text_baseline)
-    cv2.putText(img, result1, text_pos, font, 1, text_color, border_thickness)
+    cv2.putText(image, text, text_pos, font, font_scale, text_color, border_thickness, cv2.LINE_AA)
 
-    new_filename = "modified_" + i
-    cv2.imwrite(f"{image_dir}/{new_filename}", img)
 
+def add_text_to_images():
+    list12 = os.listdir(image_dir)
+
+    for i in list12:
+        result1 = random_word()
+        img = cv2.imread(f"{image_dir}/{i}")
+        draw_text_on_image(img, result1, font, text_color, border_thickness)
+        new_filename = "modified_" + i
+        cv2.imwrite(f"{image_dir}/{new_filename}", img)
+
+
+def random_word():
+    with open("question.txt", 'r', encoding="utf-8") as file:
+        lines = file.readlines()
+    random_lines = random.sample(lines, 1)
+    result_string = '|'.join(map(lambda x: x.strip(), random_lines))
+
+    return result_string
+
+
+add_text_to_images()
 
 image_paths = [os.path.join(image_dir, filename) for filename in os.listdir(image_dir)
-               if filename.endswith('.jpeg')]
+               if filename.endswith('.jpg')]
 
 image_pairs = []
 for index, image_path in enumerate(image_paths):
